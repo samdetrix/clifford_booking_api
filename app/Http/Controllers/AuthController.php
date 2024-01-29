@@ -7,8 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Role;
-
+use Laravel\Sanctum\Sanctum;
 
 class AuthController extends Controller
 {
@@ -56,25 +57,26 @@ class AuthController extends Controller
             'email' => 'required|string|email',
             'password' => 'required|string',
         ]);
-
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $user = Auth::user();
-
-            $user->load('role');
-
-            $user->tokens()->delete();
-            $token = $user->createToken('authToken')->plainTextToken;
-
-            return response()->json([
-                'token' => $token,
-                'user' => $user,
+    
+        $user = User::where('email', $request->email)->first();
+    
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['Invalid credentials'],
             ]);
         }
-
-        throw ValidationException::withMessages([
-            'email' => ['Invalid credentials'],
+    
+        // Load the 'role' relationship
+        $user->load('role');
+    
+        $token = $user->createToken('authToken')->plainTextToken;
+    
+        return response()->json([
+            'token' => $token,
+            'user' => $user,
         ]);
     }
+    
 
 
     public function logout(Request $request)

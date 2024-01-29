@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+
         Schema::create('accommodations', function (Blueprint $table) {
             $table->id();
             $table->string('name');
@@ -21,14 +22,12 @@ return new class extends Migration
             $table->boolean('is_wifi_available')->default(true);
             $table->boolean('is_parking_available')->default(true);
             $table->text('amenities')->nullable();
+            $table->unsignedBigInteger('created_by');
+            $table->foreign('created_by')->references('id')->on('users');
             $table->timestamps();
         });
         
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('accommodations');

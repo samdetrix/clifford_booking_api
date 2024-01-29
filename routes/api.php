@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\BookingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\UserSession;
-
+use App\Http\Controllers\AccommodationsController;
+use App\Http\Controllers\ContractsController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,10 +20,35 @@ use App\Http\Middleware\UserSession;
 
 
 // Public routes
+// Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::group(['middleware' => [UserSession::class]], function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
 
+
+Route::post('/logout', [AuthController::class, 'logout']);
+Route::prefix('accommodations')->group(function () {
+    Route::get('/', [AccommodationsController::class, 'index']);
+    Route::get('/{id}', [AccommodationsController::class, 'show']);
+    Route::post('/', [AccommodationsController::class, 'store']);
+    Route::put('/{id}', [AccommodationsController::class, 'update']);
+    Route::delete('/{id}', [AccommodationsController::class, 'destroy']);
 });
+Route::prefix('contracts')->group(function () {
+    Route::get('/', [ContractsController::class, 'index']);
+    Route::get('/{id}', [ContractsController::class, 'show']);
+    Route::post('/', [ContractsController::class, 'store']);
+    Route::put('/{id}', [ContractsController::class, 'update']);
+    Route::delete('/{id}', [ContractsController::class, 'destroy']);
+});
+Route::prefix('booking')->group(function () {
+    Route::get('/', [BookingController::class, 'index']);
+    Route::get('/{id}', [BookingController::class, 'show']);
+    Route::post('/', [BookingController::class, 'store']);
+    Route::put('/{id}', [BookingController::class, 'update']);
+    Route::delete('/{id}', [BookingController::class, 'destroy']);
+});
+
+
+
+

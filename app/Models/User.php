@@ -48,7 +48,7 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
-    // Assign the role efore the user is created or if the user does not have a role yet.
+    
     public function assignRole($roleName)
     {
         $role = Role::firstOrCreate(['name' => $roleName]);
@@ -56,4 +56,10 @@ class User extends Authenticatable
         $this->role()->associate($role);
         $this->save();
     }
+
+    public function accommodations()
+    {
+        return $this->hasMany(Accommodation::class);
+    }
+
 }
