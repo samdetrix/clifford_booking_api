@@ -19,10 +19,10 @@ use App\Http\Controllers\ContractsController;
 */
 
 
-// Public routes
+
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/user', [AuthController::class, 'userCred']);
 
 
 

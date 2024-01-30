@@ -12,47 +12,79 @@ class AccommodationsController extends Controller
 {
     public function index()
     {
-        // dd('i am here');
-        $accommodations = Accommodation::all();
+        try {
+            $accommodations = Accommodation::all();
 
-        return response()->json(['accommodations' => $accommodations]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Accommodations retrieved successfully',
+                'data' => ['accommodations' => $accommodations],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve accommodations',
+                'data' => null,
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
     public function show($id)
     {
-        $accommodation = Accommodation::find($id);
-
-        if (!$accommodation) {
-            return response()->json(['message' => 'Accommodation not found'], 404);
+        try {
+            $accommodation = Accommodation::findOrFail($id);
+            return response()->json(['status' => 'success', 'message' => 'Accommodation retrieved successfully', 'accommodation' => $accommodation]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Error retrieving accommodation', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json(['accommodation' => $accommodation]);
     }
-
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string',
-            'description' => 'required|string',
-            'standard_rack_rate' => 'required|numeric',
-        ]);
-
-        if ($validator->fails()) {
-            throw new ValidationException($validator);
-        }
-
-        // Check if the user exists
-        $user = User::find($request->created_by);
-
-        if (!$user) {
-            throw ValidationException::withMessages([
-                'created_by' => ['User does not exist'],
+        try {
+            // Validation rules
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string',
+                'description' => 'required|string',
+                'standard_rack_rate' => 'required|numeric',
+                'created_by' => 'required|exists:users,id',
             ]);
-        }
 
-        $accommodation = Accommodation::create($request->all());
-        return response()->json(['message' => 'Accommodation created successfully', 'accommodation' => $accommodation], 201);
+            if ($validator->fails()) {
+                throw new ValidationException($validator);
+            }
+
+            $user = User::find($request->created_by);
+
+            if (!$user) {
+                throw ValidationException::withMessages([
+                    'created_by' => ['User does not exist'],
+                ]);
+            }
+
+            $accommodation = Accommodation::create($request->all());
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Accommodation created successfully',
+                'data' => $accommodation,
+            ], 201);
+
+        } catch (ValidationException $validationException) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation error',
+                'errors' => $validationException->errors(),
+            ], $validationException->status); 
+        } catch (\Exception $exception) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error creating accommodation',
+                'error' => $exception->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(Request $request, $id)
@@ -68,15 +100,27 @@ class AccommodationsController extends Controller
         }
 
         $accommodation = Accommodation::find($id);
-        // dd($accommodation);
 
         if (!$accommodation) {
             return response()->json(['message' => 'Accommodation not found'], 404);
         }
-        $accommodation->update($request->all());
 
-        return response()->json(['message' => 'Accommodation updated successfully', 'accommodation' => $accommodation]);
+        try {
+            $accommodation->update($request->all());
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Accommodation updated successfully',
+                'accommodation' => $accommodation,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update accommodation',
+                'data' => $e->getMessage(),
+            ], 500);
+        }
     }
+
 
 
     public function destroy($id)
